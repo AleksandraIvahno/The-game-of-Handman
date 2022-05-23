@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <title>Hangman</title>
+  </html>
+  
+  <style>
+    body {
+      text-align: center;
+      background-color:yellow;
+    }
+
+    p {
+      font-size: 2em;
+    }
+
+    #lives {
+      left: 50em;
+      background-color: red;
+      color: white;
+    }
+
+    #categoryText {
+      background-color: red;
+      color: white;
+    }
+
+    #warningMsg {
+      background-color: orange;
+      color: white;
+      position: absolute;
+      left: 3em;
+      top: 5em;
+    }
+    </style>
+
+<body>
+  <h1>Hangman</h1>
+  <p id="lives">Lives:</p>
+  <p>Your word:</p>
+  <p id="hiddenWordText">_ _ _ _</p>
+  <input id="letter" type="text" placeholder="Enter your letter..." maxlength="1">
+  <button>OK</button>
+  <p id="categoryText">Category: </p>
+  <p id="warningMsg"></p>
+  <canvas width="300" height="300"></canvas>
+</body>
+
+</html>
+
+<script>
+  
+  // Нарисовать виселицу со стикменом
+  // ---
+  function drawSmallSticks() {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const halfWidth = canvas.width / 2;
+    const halfHeight = canvas.height / 2;
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#654321';
+
+    ctx.beginPath();
+    ctx.moveTo((halfWidth - 100), (halfHeight + 80));
+    ctx.lineTo((halfWidth - 80), (halfHeight + 70));
+    ctx.lineTo((halfWidth - 60), (halfHeight + 80));
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  function drawVerticalStick() {
+   const canvas = document.querySelector('canvas');
+   const ctx = canvas.getContext('2d');
+   const halfWidth = canvas.width / 2;
+   const halfHeight = canvas.height / 2;
+   ctx.lineWidth = 6;
+   ctx.strokeStyle = '#654321';
+
+    ctx.beginPath();
+    ctx.lineTo((halfWidth - 80), (halfHeight + 70));
+    ctx.lineTo((halfWidth - 80), (halfHeight - 50));
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  function drawHorizontalStick() {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const halfWidth = canvas.width / 2;
+    const halfHeight = canvas.height / 2;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#654321';
+
+    ctx.beginPath();
+    ctx.moveTo((halfWidth - 83), (halfHeight - 50));
+    ctx.lineTo((halfWidth + 15), (halfHeight - 50));
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  function drawRope() {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const halfWidth = canvas.width / 2;
+    const halfHeight = canvas.height / 2;
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#652143';
+
+    ctx.beginPath();
+    ctx.moveTo((halfWidth + 10), (halfHeight - 50));
+    ctx.lineTo((halfWidth + 10), (halfHeight - 40));
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  function drawStickHead() {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const halfWidth = canvas.width / 2;
+    const halfHeight = canvas.height / 2;
+    ctx.lineWidth = 5;
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+
+    // face
+    ctx.beginPath();
+    ctx.arc((halfWidth + 10), (halfHeight - 35), 5, 0, Math.PI * 2, false);
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function drawStickBody() {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const halfWidth = canvas.width / 2;
+    const halfHeight = canvas.height / 2;
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'black';
+
+    // body stick
+    ctx.beginPath();
+    ctx.moveTo((halfWidth + 10), (halfHeight - 30));
+    ctx.lineTo((halfWidth + 10), (halfHeight + 20));
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  function drawStickArms() {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const halfWidth = canvas.width / 2;
+    const halfHeight = canvas.height / 2;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'black';
+
+    // arms
+    // left
+    ctx.beginPath();
+    ctx.moveTo((halfWidth + 10), (halfHeight - 20));
+    ctx.lineTo((halfWidth - 10), (halfHeight + 5));
+    ctx.stroke();
+    ctx.closePath();
+
+    // right
+    ctx.beginPath();
+    ctx.moveTo((halfWidth + 10), (halfHeight - 20));
+    ctx.lineTo((halfWidth + 30), (halfHeight + 5));
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  function drawStickLegs() {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const halfWidth = canvas.width / 2;
+    const halfHeight = canvas.height / 2;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'black';
+
+    // legs
+    // left
+    ctx.beginPath();
+    ctx.moveTo((halfWidth + 10), (halfHeight + 15));
+    ctx.lineTo((halfWidth - 10), (halfHeight + 40));
+    ctx.stroke();
+    ctx.closePath();
+
+    // right
+    ctx.beginPath();
+    ctx.moveTo((halfWidth + 10), (halfHeight + 15));
+    ctx.lineTo((halfWidth + 30), (halfHeight + 40));
+    ctx.stroke();
+    ctx.closePath();
+  }
+  // ---
+
+  function guessCount(guesses) {
+
+  switch (guesses) {
+    case 7:
+      drawSmallSticks();
+      break;
+    case 6:
+      drawVerticalStick();
+      break;
+    case 5:
+      drawHorizontalStick();
+      break;
+    case 4:
+      drawRope();
+      break;
+    case 3:
+      drawStickLegs();
+      break;
+    case 2:
+      drawStickBody();
+      break;
+    case 1:
+      drawStickArms();
+      break;
+    case 0:
+      drawStickHead();
+      break;
+  }
+}
+
+  // сгенерировать рандомную цифру из выданного аргумента
+  function generateRandomNumber(fromThis) {
+    const rNum = Math.floor(Math.random() * fromThis);
+    return rNum;
+  }
+  
+  // спрятать слово
+  function hideWord(who) {
+    const hiddenWord = [];
+    for (let i = 0; i < who.length; i += 1) {
+      hiddenWord[i] = who[i].replace(who[i], '_');
+    }
+    return hiddenWord;
+  }
+  
+  // подготовить категории
+  function prepareCategories() {
+    const categories = {};
+    categories.SocialMedias = ['youtube', 'instagram', 'facebook', 'snapchat', 'twitter'];
+    categories.Communications = ['discord', 'skype', 'whatsapp', 'zoom', 'teamspeak'];
+    categories.schoolSubjects = ['mathematics', 'chemistry', 'physics', 'history', 'biology', 'english', 'latvian'];
+    return categories;
+  }
+  
+  // выбрать рандомную категорию
+  function grabCategory() {
+    const categoryList = Object.keys(cats);
+    const randomCategoryIndex = generateRandomNumber(categoryList.length);
+    const category = categoryList[randomCategoryIndex];
+    document.querySelector('#categoryText').textContent = `Category: ${category}`;
+    
+    return category;
+  }
+  
+  // выбрать рандомное слово
+  function grabWord(rCategory, catList) {
+    const wordList = Object.values(catList[rCategory]);
+    const randomWordIndex = generateRandomNumber(wordList.length);
+    const randomWord = catList[rCategory][randomWordIndex];
+    
+    return randomWord;
+  }
+  
+  // запуск игры
+  function startGame() {
+    document.querySelector('#lives').textContent = `Lives: ${lives}`;
+    cats = prepareCategories();
+    rCategory = grabCategory();
+    randomWord = grabWord(rCategory, cats);
+
+    hiddenWord = hideWord(randomWord);
+    document.querySelector('#hiddenWordText').textContent = hiddenWord.join(' ');
+  }
+  
+  let lives = 8;
+  let cats;
+  let rCategory;
+  let randomWord;
+  let hiddenWord;
+  
+  function checkWord() {
+    const letter = document.querySelector('#letter').value.toLowerCase();
+    let letterFound = false;
+
+    for (let i = 0; i < randomWord.length; i++) {
+    // found a letter
+      if (randomWord[i].includes(letter)) {
+        hiddenWord[i] = hiddenWord[i].replace(hiddenWord[i], letter);
+        document.querySelector('#hiddenWordText').textContent = hiddenWord.join(' ');
+        letterFound = true;
+      } else if (i + 1 === randomWord.length && !letterFound) {
+        // letter does not exist in the word
+        document.querySelector('#warningMsg').textContent = `The letter '${letter}' does not exist in the word`;
+        lives -=1;
+        document.querySelector('#lives').textContent = `Lives: ${lives}`;
+        guessCount(lives);
+      }
+    }
+    
+    if (lives === 0) {
+      document.querySelector('#warningMsg').textContent = `You ran out of lives!`;
+      document.querySelector('#letter').disabled = true;
+      document.querySelector('button').disabled = true;
+    }
+  }
+  document.querySelector('button').addEventListener('click', checkWord);
+  
+  window.addEventListener('load', startGame);
+</script>
